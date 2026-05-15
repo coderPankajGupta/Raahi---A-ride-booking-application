@@ -5,11 +5,11 @@ import HeroSection from "./HeroSection";
 import VehicalSlider from "./VehicalSlider";
 
 export default function PublicHome() {
-  const [authOpen, setAuthOpen] = useState(true)
+  const [authOpen, setAuthOpen] = useState(false);
   return (
     <>
-      <HeroSection />
-      <VehicalSlider /> 
+      <HeroSection onAuthOpen={() => setAuthOpen(true)} />
+      <VehicalSlider />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   );
