@@ -87,7 +87,7 @@ export default function AuthModal({ open, onClose }: propType) {
   }
 
   async function handleGoogleLogin() {
-    await signIn("google", { redirect: false });
+    await signIn("google");
   }
 
   function handleChangeOtp(index: number, value: string) {

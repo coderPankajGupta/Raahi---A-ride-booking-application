@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import connectDB from "@/lib/connectDB";
 import userModel from "@/models/user.model";
-import bycrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 import Google from "next-auth/providers/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -30,7 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!user) {
           throw new Error("No user found with the provided email.");
         }
-        const isPasswordValid = await bycrypt.compare(
+        const isPasswordValid = await bcrypt.compare(
           credentials.password as string,
           user.password,
         );
@@ -38,7 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Invalid password.");
         }
         return {
-          id: user._id,
+          id: user._id.toString(),
           name: user.name,
           role: user.role,
           email: user.email,
@@ -46,25 +46,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
 
-    Google,
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
   ],
 
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         await connectDB();
-        const existingUser = await userModel.findOne({ email: user.email });
+
+        let existingUser = await userModel.findOne({ email: user.email });
         if (!existingUser) {
-          await userModel.create({
+          existingUser = await userModel.create({
             name: user.name,
             email: user.email,
           });
         }
 
-        user.id = existingUser._id
-        user.role = existingUser.role
+        user.id = existingUser._id.toString();
+        user.role = existingUser.role;
       }
-      return true
+      return true;
     },
 
     async jwt({ token, user }) {
