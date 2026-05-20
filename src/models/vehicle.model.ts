@@ -18,21 +18,44 @@ interface IVehicle extends Document {
   updatedAt: Date;
 }
 
-const vehicleSchema = new mongoose.Schema<IVehicle>({
-    owner:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        required:true
+const vehicleSchema = new mongoose.Schema<IVehicle>(
+  {
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    type:{
-        type:String,
-        enum:["bike","car","loading","truck","auto"],
-        required:true
+    type: {
+      type: String,
+      enum: ["bike", "car", "loading", "truck", "auto"],
+      required: true,
     },
-    number:{
-        type:String,
-        required:true,
-        unique:true
+    number: {
+      type: String,
+      required: true,
+      unique: true,
     },
+    vehicleModel: {
+      type: String,
+      required: true,
+    },
+    imageUrl: String,
+    baseFare: Number,
+    pricePerKM: Number,
+    waitingCharge: Number,
+    status: {
+      type: String,
+      enum: ["approved", "rejected", "pending"],
+      default: "pending",
+    },
+    rejectionReason: String,
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  { timestamps: true },
+);
 
-}, { timestamps: true });
+export default mongoose.models.Vehicle ||
+  mongoose.model("Vehicle", vehicleSchema);
