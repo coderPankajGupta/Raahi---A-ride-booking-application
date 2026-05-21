@@ -1,5 +1,6 @@
 "use client";
 import { ArrowLeft, Bike, Car, Package, Truck } from "lucide-react";
+// import { motion } from "framer-motion";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,9 +13,11 @@ const VEHICLES = [
   { id: "truck", lable: "Truck", icon: Truck, desc: "Heavy transport" },
 ];
 
-export default function page() {
+export default function Page() {
   const router = useRouter();
   const [vehicleType, setVehicleType] = useState("");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [vehicleModel, setVehicleModel] = useState("");
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
@@ -50,16 +53,66 @@ export default function page() {
               {VEHICLES.map((v, i) => {
                 const Icon = v.icon;
                 const active = vehicleType == v.id;
-                return <motion.div key={v.id} whileHover={{scale:1.05}} whileTap={{scale:0.96}} onClick={()=>setVehicleType(v.id)} className={`rounded-2xl border p-4 flex flex-col items-center gap-2 transition ${active ? "bg-black text-white border-black" : "border-gray-200 hover:border-black"}`}>
-                    <div className={``}>
-                        <Icon/>
+                return (
+                  <motion.div
+                    key={v.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setVehicleType(v.id)}
+                    className={`rounded-2xl border p-4 flex flex-col items-center gap-2 transition ${active ? "bg-black text-white border-black" : "border-gray-200 hover:border-black"}`}
+                  >
+                    <div
+                      className={`w-11 h-11 rounded-full flex items-center justify-center ${active ? "bg-white text-black" : "bg-black text-white"}`}
+                    >
+                      <Icon />
                     </div>
-                </motion.div>;
+
+                    <div className="text-sm font-semibold">{v.lable}</div>
+
+                    <div
+                      className={`text-xs ${active ? "text-gray-300" : "text-gray-500"}`}
+                    >
+                      {v.desc}
+                    </div>
+                  </motion.div>
+                );
               })}
             </div>
           </div>
         </div>
+
+        <div className="mt-6">
+          <label htmlFor="vn" className="text-xs font-semibold text-gray-500">
+            Vehicle Number
+          </label>
+          <input
+            type="text"
+            placeholder="MH12AB1234"
+            id="vn"
+            className="mt-2 w-full border-b border-gray-300 pb-2 text-sm focus:outline-none focus:border-black transition"
+            value={vehicleNumber}
+            onChange={(e) => setVehicleNumber(e.target.value)}
+          />
+        </div>
+
+        <div className="mt-6">
+          <label htmlFor="vm" className="text-xs font-semibold text-gray-500">
+            Vehicle Model
+          </label>
+          <input
+            type="text"
+            placeholder="Tata Ace"
+            id="vm"
+            className="mt-2 w-full border-b border-gray-300 pb-2 text-sm focus:outline-none focus:border-black transition"
+            value={vehicleModel}
+            onChange={(e) => setVehicleModel(e.target.value)}
+          />
+        </div>
+
+        <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.97}} className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-40 transition" onClick={()=>router.push("/partner/onboarding/documents")}>
+          Continue
+        </motion.button>
       </motion.div>
-    </div>
+    </div>  
   );
 }

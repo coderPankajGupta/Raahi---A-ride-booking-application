@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./auth";
 
 const PUBLIC_ROUTES = ["/"];
-const PUBLIC_APIS = ["/api/auth"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith(".")
+    /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i.test(pathname)
   ) {
     return NextResponse.next();
   }
@@ -18,7 +17,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (PUBLIC_APIS.includes(pathname)) {
+  if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
 
@@ -45,7 +44,7 @@ export async function proxy(req: NextRequest) {
   }
 
   if (pathname.startsWith("/api")) {
-    if (!session.user) {
+    if (!session || !session.user) {
       return Response.json(
         {
           message: "unauthorize",

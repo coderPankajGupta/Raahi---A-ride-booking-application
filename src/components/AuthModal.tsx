@@ -4,6 +4,7 @@ import { CircleDashed, Lock, Mail, User, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type propType = {
@@ -29,6 +30,7 @@ export default function AuthModal({ open, onClose }: propType) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const router = useRouter()
 
   // const { data } = useSession();
   // console.log(data);
@@ -84,6 +86,7 @@ export default function AuthModal({ open, onClose }: propType) {
     }
     setLoading(false);
     console.log(response);
+    router.back()
   }
 
   async function handleGoogleLogin() {
