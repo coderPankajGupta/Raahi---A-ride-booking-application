@@ -95,7 +95,7 @@ export async function GET(req: Request) {
     if (vehicle) {
       return Response.json(vehicle, { status: 200 });
     } else {
-      return null;
+      return Response.json({ message: "Vehicle details not found" }, { status: 404 })
     }
   } catch (error) {
     return Response.json(

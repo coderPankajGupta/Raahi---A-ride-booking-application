@@ -4,13 +4,13 @@ import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import { useRef } from "react";
 import { useSelector } from "react-redux";
 
-export default function page() {
-  const containerRef = useRef<HTMLDivElement>(null);
+export default function Page() {
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { userData } = useSelector((state: RootState) => state.user);
 
   async function startCall() {
-    if (!containerRef) return null;
+    if (!containerRef.current) return null;
     try {
       const appId = Number(process.env.NEXT_PUBLIC_ZEGO_APP_ID);
       const serverSecret = process.env.NEXT_PUBLIC_ZEGO_SERVER_SECRET as string;

@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     if (partnerBank) {
       return Response.json(partnerBank, { status: 200 });
     } else {
-      return null;
+      return Response.json({ message: "Bank details not found" }, { status: 404 })
     }
   } catch (error) { 
     return Response.json(
