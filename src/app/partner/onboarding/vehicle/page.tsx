@@ -1,6 +1,13 @@
 "use client";
-import { ArrowLeft, Bike, Car, Package, Truck } from "lucide-react";
-// import { motion } from "framer-motion";
+import {
+  ArrowLeft,
+  Bike,
+  Car,
+  CircleDashed,
+  Package,
+  Truck,
+} from "lucide-react";
+import axios from "axios";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -18,6 +25,25 @@ export default function Page() {
   const [vehicleType, setVehicleType] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleVehicle() {
+    setError("");
+    try {
+      setLoading(true);
+      const { data } = await axios.post("/api/partner/onboarding/vehicle", {
+        type: vehicleType,
+        number: vehicleNumber,
+        vehicleModel,
+      });
+      setLoading(false);
+      router.push("/partner/onboarding/documents");
+    } catch (error: any) {
+      setError(error.response.data.message ?? "Something went wrong");
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
@@ -91,7 +117,7 @@ export default function Page() {
             id="vn"
             className="mt-2 w-full border-b border-gray-300 pb-2 text-sm focus:outline-none focus:border-black transition"
             value={vehicleNumber}
-            onChange={(e) => setVehicleNumber(e.target.value)}
+            onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
           />
         </div>
 
@@ -108,11 +134,21 @@ export default function Page() {
             onChange={(e) => setVehicleModel(e.target.value)}
           />
         </div>
-
-        <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.97}} className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-40 transition" onClick={()=>router.push("/partner/onboarding/documents")}>
-          Continue
+        {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-40 transition"
+          onClick={handleVehicle}
+          disabled={loading}
+        >
+          {loading ? (
+            <CircleDashed className="text-white animate-spin" />
+          ) : (
+            "Continue"
+          )}
         </motion.button>
       </motion.div>
-    </div>  
+    </div>
   );
 }

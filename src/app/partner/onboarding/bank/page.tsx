@@ -1,17 +1,45 @@
 "use client";
+import axios from "axios";
 import {
   ArrowLeft,
   BadgeCheck,
   CheckCircle,
+  CircleDashed,
   CreditCard,
   Landmark,
   Phone,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Page() {
   const router = useRouter();
+  const [bankDetails, setBankDetails] = useState({
+    accountHolder: "",
+    accountNumber: "",
+    ifsc: "",
+    mobileNumber: "",
+    upi: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleBank() {
+    setLoading(true);
+    try {
+      const { data } = await axios.post(
+        "/api/partner/onboarding/bank",
+        bankDetails,
+      );
+      console.log(data);
+      setLoading(false);
+    } catch (error: any) {
+      setError(error.response?.data?.message ?? "Something went wrong");
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <motion.div
@@ -51,6 +79,13 @@ export default function Page() {
                 type="text"
                 placeholder="As per bank records"
                 className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                value={bankDetails.accountHolder}
+                onChange={(e) =>
+                  setBankDetails({
+                    ...bankDetails,
+                    accountHolder: e.target.value,
+                  })
+                }
               />
             </div>
           </div>
@@ -71,6 +106,13 @@ export default function Page() {
                 type="text"
                 placeholder="Enter account number"
                 className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                value={bankDetails.accountNumber}
+                onChange={(e) =>
+                  setBankDetails({
+                    ...bankDetails,
+                    accountNumber: e.target.value,
+                  })
+                }
               />
             </div>
           </div>
@@ -91,6 +133,10 @@ export default function Page() {
                 type="text"
                 placeholder="HDFC0012345"
                 className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                value={bankDetails.ifsc}
+                onChange={(e) =>
+                  setBankDetails({ ...bankDetails, ifsc: e.target.value })
+                }
               />
             </div>
           </div>
@@ -108,6 +154,13 @@ export default function Page() {
                 type="text"
                 placeholder="+91 1234567890"
                 className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                value={bankDetails.mobileNumber}
+                onChange={(e) =>
+                  setBankDetails({
+                    ...bankDetails,
+                    mobileNumber: e.target.value,
+                  })
+                }
               />
             </div>
           </div>
@@ -125,6 +178,10 @@ export default function Page() {
                 type="text"
                 placeholder="name@oksbi"
                 className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                value={bankDetails.upi}
+                onChange={(e) =>
+                  setBankDetails({ ...bankDetails, upi: e.target.value })
+                }
               />
             </div>
           </div>
@@ -138,12 +195,19 @@ export default function Page() {
           </p>
         </div>
 
+        {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
-          className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold disabled:opacity-40 transition"
+          className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold disabled:opacity-40 transition flex items-center justify-center"
+          onClick={handleBank}
+          disabled={loading}
         >
-          Continue
+          {loading ? (
+            <CircleDashed className="text-white animate-spin" />
+          ) : (
+            "Continue"
+          )}
         </motion.button>
       </motion.div>
     </div>
