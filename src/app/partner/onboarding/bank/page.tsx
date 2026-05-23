@@ -13,6 +13,8 @@ import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+
 export default function Page() {
   const router = useRouter();
   const [bankDetails, setBankDetails] = useState({
@@ -25,12 +27,30 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const sanitizedIfsc = bankDetails.ifsc.trim().toUpperCase();
+
+  const isNameValid = bankDetails.accountHolder.trim().length >= 3;
+
+  const isAccountValid = bankDetails.accountNumber.trim().length >= 9;
+
+  const isIfscValid = IFSC_REGEX.test(sanitizedIfsc);
+
+  const isMobileValid = bankDetails.mobileNumber.trim().length >= 10;
+
+  const canSubmit =
+    isNameValid && isAccountValid && isIfscValid && isMobileValid;
+
+  const payload = {
+    ...bankDetails,
+    ifsc: sanitizedIfsc,
+  };
+
   async function handleBank() {
     setLoading(true);
     try {
       const { data } = await axios.post(
         "/api/partner/onboarding/bank",
-        bankDetails,
+        payload,
       );
       console.log(data);
       setLoading(false);
@@ -78,7 +98,7 @@ export default function Page() {
                 id="ahn"
                 type="text"
                 placeholder="As per bank records"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 ${isNameValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-re"} focus:border-black`}
                 value={bankDetails.accountHolder}
                 onChange={(e) =>
                   setBankDetails({
@@ -105,7 +125,7 @@ export default function Page() {
                 id="bcn"
                 type="text"
                 placeholder="Enter account number"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${isAccountValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-red-500"}`}
                 value={bankDetails.accountNumber}
                 onChange={(e) =>
                   setBankDetails({
@@ -132,7 +152,7 @@ export default function Page() {
                 id="ifscc"
                 type="text"
                 placeholder="HDFC0012345"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${isIfscValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-red-500"}`}
                 value={bankDetails.ifsc}
                 onChange={(e) =>
                   setBankDetails({ ...bankDetails, ifsc: e.target.value })
@@ -153,7 +173,7 @@ export default function Page() {
                 id="mn"
                 type="text"
                 placeholder="+91 1234567890"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${isMobileValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-red-500"}`}
                 value={bankDetails.mobileNumber}
                 onChange={(e) =>
                   setBankDetails({
