@@ -27,6 +27,25 @@ const KPI_CONFIG: Record<
   },
 };
 
-export default function Kpi({ label, value, icon }: any) {
-  return <motion.div></motion.div>;
+export default function Kpi({ label, value, icon, variant }: any) {
+  const cfg = KPI_CONFIG[variant];
+  return (
+    <motion.div
+      whileHover={{ y: -5 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className={`bg-white rounded-2xl p-5 border border-gray-100 shadow-sm cursor-default relative overflow-hidden group ${cfg.cardHover}`}
+    >
+      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl ${cfg.iconBg}`} style={{zIndex:0}}/>
+      <div className="relative z-10">
+        <motion.div whileHover={{rotate:-6, scale:1}} transition={{type:"spring", stiffness:400}} className={`w-11 h-11 rounded-xl flex items-center justify-center ${cfg.iconBg} ${cfg.iconColor}`}>
+          {icon}
+        </motion.div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">{label}</p>
+
+        <motion.div className="text-3xl font-extrabold text-gray-950 leading-tight" initial={{opacity:0, y:8}} animate={{opacity:1, y:0}} transition={{delay:0.1, duration:0.4}}>
+          {value}
+        </motion.div>
+      </div>
+    </motion.div>
+  );
 }
