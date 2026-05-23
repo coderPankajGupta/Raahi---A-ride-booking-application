@@ -10,7 +10,7 @@ import {
 import axios from "axios";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const VEHICLES = [
   { id: "bike", lable: "Bike", icon: Bike, desc: "2 wheeler" },
@@ -44,6 +44,20 @@ export default function Page() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+     async function handleGetVehicle() {
+    try {
+      const { data } = await axios.get("/api/partner/onboarding/vehicle");
+      setVehicleType(data.type);
+      setVehicleNumber(data.number);
+      setVehicleModel(data.vehicleModel);
+    } catch (error: any) {
+      console.log(error)
+    }
+  }
+  handleGetVehicle();
+  }, [])
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">

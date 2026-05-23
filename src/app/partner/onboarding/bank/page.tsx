@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
@@ -52,13 +52,31 @@ export default function Page() {
         "/api/partner/onboarding/bank",
         payload,
       );
-      console.log(data);
       setLoading(false);
+      router.push("/");
     } catch (error: any) {
       setError(error.response?.data?.message ?? "Something went wrong");
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    async function handleGetBank() {
+      try {
+        const { data } = await axios.get("/api/partner/onboarding/bank");
+        setBankDetails({
+          accountHolder: data.partnerBank.accountHolder || "",
+          accountNumber: data.partnerBank.accountNumber || "",
+          ifsc: data.partnerBank.ifsc || "",
+          mobileNumber: data.mobileNumber || "",
+          upi: data.partnerBank.upi || "",
+        });
+      } catch (error: any) {
+        console.log(error);
+      }
+    }
+    handleGetBank();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -98,7 +116,7 @@ export default function Page() {
                 id="ahn"
                 type="text"
                 placeholder="As per bank records"
-                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 ${isNameValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-re"} focus:border-black`}
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 ${!isNameValid && bankDetails.accountHolder.length > 0 ? "border-red-400 focus:border-re" : "border-gray-300 focus:border-black"} focus:border-black`}
                 value={bankDetails.accountHolder}
                 onChange={(e) =>
                   setBankDetails({
@@ -125,7 +143,7 @@ export default function Page() {
                 id="bcn"
                 type="text"
                 placeholder="Enter account number"
-                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${isAccountValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-red-500"}`}
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${!isAccountValid && bankDetails.accountHolder.length > 0 ? "border-red-400 focus:border-re" : "border-gray-300 focus:border-black"}`}
                 value={bankDetails.accountNumber}
                 onChange={(e) =>
                   setBankDetails({
@@ -152,8 +170,8 @@ export default function Page() {
                 id="ifscc"
                 type="text"
                 placeholder="HDFC0012345"
-                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${isIfscValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-red-500"}`}
-                value={bankDetails.ifsc}
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${!isIfscValid && bankDetails.ifsc.length > 0 ? "border-red-400 focus:border-re" : "border-gray-300 focus:border-black"}`}
+                value={bankDetails.ifsc.toUpperCase()}
                 onChange={(e) =>
                   setBankDetails({ ...bankDetails, ifsc: e.target.value })
                 }
@@ -173,7 +191,7 @@ export default function Page() {
                 id="mn"
                 type="text"
                 placeholder="+91 1234567890"
-                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${isMobileValid?"border-gray-300 focus:border-black":"border-red-400 focus:border-red-500"}`}
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${!isMobileValid && bankDetails.mobileNumber.length > 0 ? "border-red-400 focus:border-re" : "border-gray-300 focus:border-black"}`}
                 value={bankDetails.mobileNumber}
                 onChange={(e) =>
                   setBankDetails({
@@ -221,7 +239,7 @@ export default function Page() {
           whileTap={{ scale: 0.97 }}
           className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold disabled:opacity-40 transition flex items-center justify-center"
           onClick={handleBank}
-          disabled={loading}
+          disabled={!canSubmit || loading}
         >
           {loading ? (
             <CircleDashed className="text-white animate-spin" />

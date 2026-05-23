@@ -10,6 +10,7 @@ export interface IUser extends Document {
   otpExpiresAt?: Date;
   partnerOnBoardingSteps: number;
   mobileNumber?: string;
+  partnerStatus : "pending" | "approved" | "rejected";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +38,11 @@ const userSchema = new mongoose.Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    partnerStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
     otp: {
       type: String,
     },
@@ -56,4 +62,5 @@ const userSchema = new mongoose.Schema<IUser>(
   { timestamps: true },
 );
 
-export default mongoose.models.User || mongoose.model("User", userSchema);
+const userModel = mongoose.models.User || mongoose.model("User", userSchema);
+export default userModel

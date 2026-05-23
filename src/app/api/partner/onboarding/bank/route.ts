@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
 
     const partnerBank = await partnerBankModel.findOne({ owner: user._id });
     if (partnerBank) {
-      return Response.json(partnerBank, { status: 200 });
+      return Response.json({partnerBank, mobileNumber:user.mobileNumber}, { status: 200 });
     } else {
       return Response.json({ message: "Bank details not found" }, { status: 404 })
     }

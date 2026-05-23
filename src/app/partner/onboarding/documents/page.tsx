@@ -16,6 +16,7 @@ export default function Page() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const isCompleted = docs.aadhar && docs.license && docs.rc;
 
   async function handleDocs() {
     setLoading(true);
@@ -82,8 +83,15 @@ export default function Page() {
               <p className="text-xs text-gray-500">Government issued ID</p>
             </div>
 
-            <div>
-              <span className="text-xs text-gray-400">Upload</span>
+            <div className="flex flex-col items-center justify-center">
+              {docs.aadhar ? (
+                <span className="text-xs text-green-600 font-medium">
+                  Uploaded
+                </span>
+              ) : (
+                <span className="text-xs text-gray-400">Upload</span>
+              )}
+
               <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
                 <UploadCloud size={18} />
               </div>
@@ -108,8 +116,14 @@ export default function Page() {
               <p className="text-xs text-gray-500">Valid driving license</p>
             </div>
 
-            <div>
-              <span className="text-xs text-gray-400">Upload</span>
+            <div className="flex flex-col items-center justify-center">
+              {docs.license ? (
+                <span className="text-xs text-green-600 font-medium">
+                  Uploaded
+                </span>
+              ) : (
+                <span className="text-xs text-gray-400">Upload</span>
+              )}
               <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
                 <UploadCloud size={18} />
               </div>
@@ -134,8 +148,14 @@ export default function Page() {
               <p className="text-xs text-gray-500">Registration Certificate</p>
             </div>
 
-            <div>
-              <span className="text-xs text-gray-400">Upload</span>
+            <div className="flex flex-col items-center justify-center">
+              {docs.rc ? (
+                <span className="text-xs text-green-600 font-medium">
+                  Uploaded
+                </span>
+              ) : (
+                <span className="text-xs text-gray-400">Upload</span>
+              )}
               <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
                 <UploadCloud size={18} />
               </div>
@@ -164,7 +184,7 @@ export default function Page() {
           whileTap={{ scale: 0.97 }}
           className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-40 transition"
           onClick={handleDocs}
-          disabled={loading}
+          disabled={!isCompleted || loading}
         >
           {loading ? (
             <CircleDashed className="text-white animate-spin" />
