@@ -42,10 +42,8 @@ export async function POST(req: NextRequest) {
     );
 
     user.mobileNumber = mobileNumber;
-    if (user.partnerOnBoardingSteps < 3) {
-      user.partnerOnBoardingSteps = 3;
-    }
-
+    user.partnerOnBoardingSteps = 3;
+    user.partnerStatus = "pending";
     await user.save();
 
     return Response.json(partnerBank, { status: 200 });
@@ -72,11 +70,17 @@ export async function GET(req: NextRequest) {
 
     const partnerBank = await partnerBankModel.findOne({ owner: user._id });
     if (partnerBank) {
-      return Response.json({partnerBank, mobileNumber:user.mobileNumber}, { status: 200 });
+      return Response.json(
+        { partnerBank, mobileNumber: user.mobileNumber },
+        { status: 200 },
+      );
     } else {
-      return Response.json({ message: "Bank details not found" }, { status: 404 })
+      return Response.json(
+        { message: "Bank details not found" },
+        { status: 404 },
+      );
     }
-  } catch (error) { 
+  } catch (error) {
     return Response.json(
       { message: `Get Bank Details Error : ${error}` },
       { status: 500 },

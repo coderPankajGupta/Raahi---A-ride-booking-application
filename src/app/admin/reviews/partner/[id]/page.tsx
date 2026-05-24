@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Car,
   Circle,
+  CircleDashed,
   Clock,
   FileText,
   Landmark,
@@ -29,6 +30,9 @@ export default function page() {
   const [partnerBank, setPartnerBank] = useState<IPartnerBank | null>(null);
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
   const router = useRouter();
 
   async function handleGetPartner() {
@@ -55,6 +59,37 @@ export default function page() {
         Loading Partner...
       </div>
     );
+  }
+
+  async function handleApprove() {
+    setApproveLoading(true);
+    try {
+      const { data } = await axios.get(
+        `/api/admin/reviews/partner/${id}/approve`,
+      );
+      console.log(data);
+      setApproveLoading(false);
+      router.push("/")
+    } catch (error) {
+      console.log(error);
+      setApproveLoading(false);
+    }
+  }
+
+  async function handleReject() {
+    setRejectLoading(true);
+    try {
+      const { data } = await axios.post(
+        `/api/admin/reviews/partner/${id}/reject`,
+        { rejectionReason },
+      );
+      console.log(data);
+      setRejectLoading(false);
+      router.push("/")
+    } catch (error) {
+      console.log(error);
+      setRejectLoading(false);
+    }
   }
 
   return (
@@ -213,8 +248,11 @@ export default function page() {
                 >
                   Cancel
                 </button>
-                <button className="flex-1 py-2 rounded-xl bg-black text-white">
-                  Yes, Approve
+                <button
+                  className="flex-1 flex justify-center items-center py-2 rounded-xl bg-black text-white"
+                  onClick={handleApprove} disabled={approveLoading}
+                >
+                  {approveLoading? <CircleDashed className="text-white animate-spin"/>:"Yes, Approve"}
                 </button>
               </div>
             </motion.div>
@@ -237,7 +275,12 @@ export default function page() {
             >
               <h2 className="text-lg font-bold">Reject Partner?</h2>
               <p className="text-sm text-gray-500 mt-2">
-                <textarea placeholder="Enter rejection reason (required)" className="w-full mt-3 border rounded-xl p-3 text-sm"/>
+                <textarea
+                  placeholder="Enter rejection reason (required)"
+                  className="w-full mt-3 border rounded-xl p-3 text-sm"
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                />
               </p>
               <div className="flex gap-3 mt-6">
                 <button
@@ -246,8 +289,11 @@ export default function page() {
                 >
                   Cancel
                 </button>
-                <button className="flex-1 py-2 rounded-xl bg-black text-white">
-                  Reject
+                <button
+                  className="flex-1 flex py-2 rounded-xl justify-center items-center bg-black text-white"
+                  onClick={handleReject} disabled={rejectLoading}
+                >
+                  {rejectLoading? <CircleDashed className="text-white animate-spin"/> : "Reject"}
                 </button>
               </div>
             </motion.div>

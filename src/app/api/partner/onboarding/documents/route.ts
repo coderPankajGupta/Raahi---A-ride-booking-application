@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const aadhar = formdata.get("aadhar") as Blob | null;
     const license = formdata.get("license") as Blob | null;
     const rc = formdata.get("rc") as Blob | null;
-    
+
     if (!aadhar || !license || !rc) {
       return Response.json(
         { message: "All documents are required" },
@@ -76,7 +76,11 @@ export async function POST(req: Request) {
 
     if (user.partnerOnBoardingSteps < 2) {
       user.partnerOnBoardingSteps = 2;
+    } else {
+      user.partnerOnBoardingSteps = 3;
     }
+
+    user.partnerStatus = "pending";
 
     await user.save();
 
