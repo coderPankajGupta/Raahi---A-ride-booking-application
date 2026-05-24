@@ -4,6 +4,7 @@ import partnerBankModel from "@/models/partnerBank.model";
 import partnerDocsModel from "@/models/partnerDocs.model";
 import userModel from "@/models/user.model";
 import vehicleModel from "@/models/vehicle.model";
+import { p } from "framer-motion/client";
 
 export async function GET(
   req: Request,
@@ -31,6 +32,7 @@ export async function GET(
 
     return Response.json(
       {
+        partner: partner || null,
         vehicle: vehicle || null,
         documents: documents || null,
         bank: bank || null,

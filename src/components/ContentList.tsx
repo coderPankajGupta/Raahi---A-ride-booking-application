@@ -17,7 +17,7 @@ export default function ContentList({ data, type }: any) {
         </div>
         <p className="font-bold text-gray-800 text-base">All caught up!</p>
         <p className="text-sm text-gray-400 mt-1">
-          Np pending items right now.
+          No pending items right now.
         </p>
       </motion.div>
     );
@@ -39,7 +39,7 @@ export default function ContentList({ data, type }: any) {
         const name = item.name;
         const email = item.email;
         return (
-          <motion.div
+          <motion.div key={item._id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
@@ -66,7 +66,7 @@ export default function ContentList({ data, type }: any) {
                 onClick={() => {
                   type === "partner"
                     ? router.push(`/admin/reviews/partner/${item._id}`)
-                    : router.push(`/app/admin/reviews/vehicle/${item.id}`);
+                    : router.push(`/admin/reviews/vehicle/${item.id}`);
                 }}
               >
                 Review <ArrowRight size={15} />
