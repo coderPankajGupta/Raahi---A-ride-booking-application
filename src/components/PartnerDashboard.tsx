@@ -3,8 +3,11 @@ import { RootState } from "@/redux/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { motion } from "motion/react";
-import { Check, Lock } from "lucide-react";
+import { Check, Clock, Lock, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
+import RejectionCard from "./RejectionCard";
+import StatusCard from "./StatusCard";
+import ActionCard from "./ActionCard";
 
 type Step = {
   id: number;
@@ -91,6 +94,22 @@ export default function PartnerDashboard() {
             </div>
           </div>
         </div>
+
+        {activeStep == 4  && userData?.partnerStatus === "rejected" && (
+          <RejectionCard title="Partner Rejected" reason={userData.rejectionReason} actionLable={`Review and Update`} onAction={()=>router.push("/partner/onboarding/vehicle")}/>
+        )}
+
+        {activeStep == 4  && userData?.partnerStatus === "pending" && (
+          <StatusCard icon={<Clock size={18}/>} title={"Documents under review"} desc={"Admin is verifying your documents."}/>
+        )}
+
+        {activeStep == 5  && userData?.videoKycStatus === "approved" ? (
+          <StatusCard icon={<Check size={18}/>} title={"video kyc approved"} desc={"You can now proceed to pricing."} /> 
+        ) : activeStep == 5  && userData?.videoKycStatus === "rejected" ? (
+          <RejectionCard title="Video KYC Rejected" reason={userData?.videoKycRejectionReason} actionLable = "Request Again" />
+        ) : activeStep == 5  && userData?.videoKycStatus === "in_progress" && userData.videoKycRoomId ? (
+          <ActionCard icon={<Video size={18}/>} title="Admin Started Video KYC" button={"Join Call"} onclick={()=>router.push(`/video-kyc/${userData.videoKycRoomId}`)}/>
+        )}
       </div>
     </div>
   );

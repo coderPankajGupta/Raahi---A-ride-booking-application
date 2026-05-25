@@ -27,7 +27,6 @@ export default function AdminDashboard() {
   async function handleGetData() {
     try {
       const { data } = await axios.get("/api/admin/dashboard");
-      console.log(data)
       setStats(data.stats);
       setPartnerReviews(data.pendingPartnersReviews);
     } catch (error) {
@@ -35,8 +34,19 @@ export default function AdminDashboard() {
     }
   }
 
+   async function handleGetPendingKyc() {
+    try {
+      const { data } = await axios.get("/api/admin/video-kyc/pending");
+      setPendingkyc(data)
+      console.log(data)
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     handleGetData();
+    handleGetPendingKyc()
   }, []);
 
   return (
