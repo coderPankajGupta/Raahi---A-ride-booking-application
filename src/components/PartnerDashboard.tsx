@@ -44,7 +44,7 @@ export default function PartnerDashboard() {
     if (step.route && step.id <= activeStep) {
       router.push(step.route);
     }
-}
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 px-4 pt-28 pb-28">
@@ -76,10 +76,11 @@ export default function PartnerDashboard() {
                     className="flex flex-col items-center z-10 cursor-pointer"
                   >
                     <div
-                      className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${completed ? "bg-black text-white border-black" : active ? "border-black bg-white" : "border-gray-300 bg-white text-gray-400"}`} onClick={()=>handleStepClick(step)}
+                      className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${completed ? "bg-black text-white border-black" : active ? "border-black bg-white" : "border-gray-300 bg-white text-gray-400"}`}
+                      onClick={() => handleStepClick(step)}
                     >
                       {completed ? (
-                        <Check size={18}/>
+                        <Check size={18} />
                       ) : locked ? (
                         <Lock size={18} />
                       ) : (
@@ -87,7 +88,9 @@ export default function PartnerDashboard() {
                       )}
                     </div>
 
-                    <p className="mt-3 text-sm font-semibold text-center">{step.title}</p>
+                    <p className="mt-3 text-sm font-semibold text-center">
+                      {step.title}
+                    </p>
                   </motion.div>
                 );
               })}
@@ -95,21 +98,53 @@ export default function PartnerDashboard() {
           </div>
         </div>
 
-        {activeStep == 4  && userData?.partnerStatus === "rejected" && (
-          <RejectionCard title="Partner Rejected" reason={userData.rejectionReason} actionLable={`Review and Update`} onAction={()=>router.push("/partner/onboarding/vehicle")}/>
+        {activeStep == 4 && userData?.partnerStatus === "rejected" && (
+          <RejectionCard
+            title="Partner Rejected"
+            reason={userData.rejectionReason}
+            actionLable={`Review and Update`}
+            onAction={() => router.push("/partner/onboarding/vehicle")}
+          />
         )}
 
-        {activeStep == 4  && userData?.partnerStatus === "pending" && (
-          <StatusCard icon={<Clock size={18}/>} title={"Documents under review"} desc={"Admin is verifying your documents."}/>
+        {activeStep == 4 && userData?.partnerStatus === "pending" && (
+          <StatusCard
+            icon={<Clock size={18} />}
+            title={"Documents under review"}
+            desc={"Admin is verifying your documents."}
+          />
         )}
 
-        {activeStep == 5  && userData?.videoKycStatus === "approved" ? (
-          <StatusCard icon={<Check size={18}/>} title={"video kyc approved"} desc={"You can now proceed to pricing."} /> 
-        ) : activeStep == 5  && userData?.videoKycStatus === "rejected" ? (
-          <RejectionCard title="Video KYC Rejected" reason={userData?.videoKycRejectionReason} actionLable = "Request Again" />
-        ) : activeStep == 5  && userData?.videoKycStatus === "in_progress" && userData.videoKycRoomId ? (
-          <ActionCard icon={<Video size={18}/>} title="Admin Started Video KYC" button={"Join Call"} onclick={()=>router.push(`/video-kyc/${userData.videoKycRoomId}`)}/>
-        )}
+        {activeStep == 5 &&
+          (userData?.videoKycStatus === "approved" ? (
+            <StatusCard
+              icon={<Check size={18} />}
+              title={"video kyc approved"}
+              desc={"You can now proceed to pricing."}
+            />
+          ) : userData?.videoKycStatus === "rejected" ? (
+            <RejectionCard
+              title="Video KYC Rejected"
+              reason={userData?.videoKycRejectionReason}
+              actionLable="Request Again"
+            />
+          ) : userData?.videoKycStatus === "in_progress" &&
+            userData.videoKycRoomId ? (
+            <ActionCard
+              icon={<Video size={18} />}
+              title="Admin Started Video KYC"
+              button={"Join Call"}
+              onclick={() =>
+                router.push(`/video-kyc/${userData.videoKycRoomId}`)
+              }
+            />
+          ) : (
+            <StatusCard
+              icon={<Clock size={18} />}
+              title="Waiting for Admin"
+              desc="Admin will initiate Video KYC shortly."
+            />
+          ))}
       </div>
     </div>
   );

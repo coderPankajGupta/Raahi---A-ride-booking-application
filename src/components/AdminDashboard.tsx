@@ -1,6 +1,14 @@
 "use client";
 import axios from "axios";
-import { CheckCircle, Clock, Truck, User, Users, Video, XCircle } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  Truck,
+  User,
+  Users,
+  Video,
+  XCircle,
+} from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Kpi from "./Kpi";
@@ -34,11 +42,11 @@ export default function AdminDashboard() {
     }
   }
 
-   async function handleGetPendingKyc() {
+  async function handleGetPendingKyc() {
     try {
       const { data } = await axios.get("/api/admin/video-kyc/pending");
-      setPendingkyc(data)
-      console.log(data)
+      setPendingkyc(data);
+      console.log(data);
     } catch (error) {
       console.log(error);
     }
@@ -46,7 +54,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     handleGetData();
-    handleGetPendingKyc()
+    handleGetPendingKyc();
   }, []);
 
   return (
@@ -99,30 +107,49 @@ export default function AdminDashboard() {
           <TabButton
             active={activeTab == "partner"}
             count={partnerReviews.length ?? 0}
-            icon={<Users size={15}/>}
+            icon={<Users size={15} />}
             onClick={() => setActiveTab("partner")}
-          >Pending Partner Reviews</TabButton>
+          >
+            Pending Partner Reviews
+          </TabButton>
 
           <TabButton
             active={activeTab == "kyc"}
             count={pendingkyc.length ?? 0}
-            icon={<Video size={15}/>}
+            icon={<Video size={15} />}
             onClick={() => setActiveTab("kyc")}
-          >Pending Video KYC</TabButton>
+          >
+            Pending Video KYC
+          </TabButton>
 
           <TabButton
             active={activeTab == "vehicle"}
             count={vehicleReviews.length ?? 0}
-            icon={<Truck size={15}/>}
+            icon={<Truck size={15} />}
             onClick={() => setActiveTab("vehicle")}
-          >Pending Vehicle Reviews</TabButton>
+          >
+            Pending Vehicle Reviews
+          </TabButton>
         </div>
 
         <AnimatePresence>
-          <motion.div key={activeTab} initial={{opacity:0, y:16}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-8}} transition={{duration:0.2, ease:"easeOut"}} className="space-y-3">
-            {activeTab === "partner" && <ContentList data={partnerReviews ?? []} type={"partner"}/>}
-            {activeTab === "kyc" && <ContentList data={pendingkyc ?? []} type={"kyc"}/>}
-            {activeTab === "vehicle" && <ContentList data={vehicleReviews ?? []} type={"vehicle"}/>}
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="space-y-3"
+          >
+            {activeTab === "partner" && (
+              <ContentList data={partnerReviews ?? []} type={"partner"} />
+            )}
+            {activeTab === "kyc" && (
+              <ContentList data={pendingkyc ?? []} type={"kyc"} />
+            )}
+            {activeTab === "vehicle" && (
+              <ContentList data={vehicleReviews ?? []} type={"vehicle"} />
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
