@@ -47,8 +47,8 @@ export default function ContentList({ data, type }: any) {
       </div>
 
       {data.map((item: any, idx: number) => {
-        const name = item.name;
-        const email = item.email;
+        const name = item?.name || item?.owner?.name;
+        const email = item?.email || item?.owner?.email;
         return (
           <motion.div
             key={item._id}
@@ -60,7 +60,7 @@ export default function ContentList({ data, type }: any) {
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 bg-purple-100 text-purple-800">
-                {name.charAt(0).toUpperCase() ?? <User size={14} />}
+                {name ? name.charAt(0).toUpperCase() : <User size={14} />}
               </div>
 
               <div className="min-w-0">
@@ -97,7 +97,7 @@ export default function ContentList({ data, type }: any) {
                   onClick={() => {
                     type === "partner"
                       ? router.push(`/admin/reviews/partner/${item._id}`)
-                      : router.push(`/admin/reviews/vehicle/${item.id}`);
+                      : router.push(`/admin/reviews/vehicle/${item._id}`);
                   }}
                 >
                   Review <ArrowRight size={15} />

@@ -3,7 +3,7 @@ import { RootState } from "@/redux/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { motion } from "motion/react";
-import { Check, Clock, Lock, Video } from "lucide-react";
+import { ArrowRight, Check, Clock, Lock, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import RejectionCard from "./RejectionCard";
 import StatusCard from "./StatusCard";
@@ -36,7 +36,7 @@ export default function PartnerDashboard() {
   const { userData } = useSelector((state: RootState) => state.user);
   const [requestLoading, setRequestLoading] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [vehicleData, setVehicleData] = useState<IVehicle | null>(null)
+  const [vehicleData, setVehicleData] = useState<IVehicle | null>(null);
   useEffect(() => {
     if (userData) {
       setActiveStep(userData.partnerOnBoardingSteps + 1);
@@ -46,6 +46,19 @@ export default function PartnerDashboard() {
 
   const progressPercentage = ((activeStep - 1) / (TOTAL_STEPS - 1)) * 100;
 
+  async function handleGetPricing() {
+    try {
+      const { data } = await axios.get("/api/partner/onboarding/pricing");
+      setVehicleData(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    handleGetPricing();
+  }, []);
+
   function handleStepClick(step: Step) {
     if (
       step.id == 6 &&
@@ -53,7 +66,7 @@ export default function PartnerDashboard() {
       userData?.videoKycStatus === "approved"
     ) {
       setShowPricing(true);
-      return
+      return;
     }
     if (step.route && step.id <= activeStep) {
       router.push(step.route);
@@ -168,9 +181,28 @@ export default function PartnerDashboard() {
               desc="Admin will initiate Video KYC shortly."
             />
           ))}
+
+          {activeStep == 7 && vehicleData?.status == "pending" && (
+            <StatusCard title="Pricing Under Review" desc="Admin is reviewing your pricing." icon={<Clock size={20}/> }/>
+          )}
+
+          {activeStep == 7 && vehicleData?.status == "rejected" && (
+            <RejectionCard title="Pricing Rejected" reason={vehicleData.rejectionReason} actionLable={`Edit & Resubmit`} onAction={()=>setShowPricing(true)} />
+          )}
+
+          {activeStep == 8 && vehicleData?.status == "approved" && (
+            <motion.div initial={{opacity:0,y:30}} animate={{opacity:1,y:0}} className="bg-black text-white rounded-3xl p-10 shadow-2xl">
+              <h2 className="text-2xl font-bold">🚀 You're Live</h2>
+              <button className="mt-6 bg-white text-black px-6 py-3 rounded-xl font-semibold flex items-center gap-2">Go to Booking <ArrowRight size={16}/></button>
+            </motion.div>
+          )}
       </div>
 
-      <PricingModel open={showPricing} onClose={()=>setShowPricing(false)} data={vehicleData}/>
+      <PricingModel
+        open={showPricing}
+        onClose={() => setShowPricing(false)}
+        data={vehicleData}
+      />
     </div>
   );
 }

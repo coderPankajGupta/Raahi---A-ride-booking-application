@@ -36,7 +36,7 @@ export default function Page() {
         formData,
       );
       setLoading(false);
-      router.push("/partner/onboarding/bank");
+      router.push("/");
     } catch (error: any) {
       setLoading(false);
       setError(error?.response?.data?.message ?? "Something went wrong");

@@ -52,6 +52,7 @@ export default function Page() {
       setVehicleType(data.type);
       setVehicleNumber(data.number);
       setVehicleModel(data.vehicleModel);
+      router.push("/");
     } catch (error: any) {
       console.log(error)
     }

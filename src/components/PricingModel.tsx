@@ -1,10 +1,10 @@
 "use client";
 import { IVehicle } from "@/models/vehicle.model";
 import axios from "axios";
-import { form } from "framer-motion/client";
 import { ImagePlus, IndianRupee } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type PropsType = {
   open: boolean;
@@ -18,8 +18,20 @@ export default function PricingModel({ open, onClose, data }: PropsType) {
   const [baseFare, setBaseFare] = useState("");
   const [pricePerKM, setPricePerKM] = useState("");
   const [waitingCharge, setWaitingCharge] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (data) {
+      setPreview(data.imageUrl || null);
+      setBaseFare(data.baseFare?.toString() || "");
+      setPricePerKM(data.pricePerKM.toString() || "");
+      setWaitingCharge(data.waitingCharge.toString() || "");
+    }
+  }, [data]);
 
   async function handleSubmit() {
+    setLoading(true);
     try {
       const formData = new FormData();
       formData.append("baseFare", baseFare);
@@ -34,8 +46,11 @@ export default function PricingModel({ open, onClose, data }: PropsType) {
         formData,
       );
       console.log(data);
+      setLoading(false);
+      onClose();
     } catch (error: any) {
       console.log(error.response.data.message);
+      setLoading(false);
     }
   }
 
@@ -135,8 +150,12 @@ export default function PricingModel({ open, onClose, data }: PropsType) {
               >
                 Cancel
               </button>
-              <button className="flex-1 bg-black text-white rounded-xl py-2">
-                Save
+              <button
+                className="flex-1 bg-black text-white rounded-xl py-2"
+                disabled={loading}
+                onClick={handleSubmit}
+              >
+                {loading ? "Saving..." : "Save"}
               </button>
             </div>
           </motion.div>

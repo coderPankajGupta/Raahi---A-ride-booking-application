@@ -37,6 +37,7 @@ export default function AdminDashboard() {
       const { data } = await axios.get("/api/admin/dashboard");
       setStats(data.stats);
       setPartnerReviews(data.pendingPartnersReviews);
+      setVehicleReviews(data.pendingVehicles)
     } catch (error) {
       console.log(error);
     }

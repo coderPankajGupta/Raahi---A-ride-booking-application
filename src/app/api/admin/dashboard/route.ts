@@ -47,8 +47,11 @@ export async function GET(req: Request) {
       vehicleType: vehicleTypeMap.get(partner._id.toString()),
     }));
 
+    const pendingVehicles = await vehicleModel.find({status:"pending",baseFare:{$exists:true},pricePerKM:{$exists:true}}).populate("owner")
+
     return Response.json(
       {
+        pendingVehicles,
         stats: {
           totalPartners,
           totalApprovedPartners,

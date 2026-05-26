@@ -70,3 +70,30 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function GET() {
+  try {
+    await connectDB();
+    const session = await auth();
+    if (!session || !session.user?.email) {
+      return Response.json({ message: "Unauthorized" }, { status: 400 });
+    }
+
+    const partner = await userModel.findOne({ email: session.user.email });
+    if (!partner) {
+      return Response.json({ message: "Partner not found" }, { status: 400 });
+    }
+
+    const vehicle = await vehicleModel.findOne({ owner: partner._id });
+    if (!vehicle) {
+      return Response.json({ message: "Vehicle not found" }, { status: 400 });
+    }
+
+    return Response.json(vehicle, { status: 200 });
+  } catch (error) {
+    return Response.json(
+      { message: `Get pricing error : ${error}` },
+      { status: 500 },
+    );
+  }
+}
