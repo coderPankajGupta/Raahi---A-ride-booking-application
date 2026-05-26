@@ -8,6 +8,9 @@ import { useRouter } from "next/navigation";
 import RejectionCard from "./RejectionCard";
 import StatusCard from "./StatusCard";
 import ActionCard from "./ActionCard";
+import axios from "axios";
+import PricingModel from "./PricingModel";
+import { IVehicle } from "@/models/vehicle.model";
 
 type Step = {
   id: number;
@@ -31,6 +34,9 @@ const TOTAL_STEPS = STEPS.length;
 export default function PartnerDashboard() {
   const [activeStep, setActiveStep] = useState(0);
   const { userData } = useSelector((state: RootState) => state.user);
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
+  const [vehicleData, setVehicleData] = useState<IVehicle | null>(null)
   useEffect(() => {
     if (userData) {
       setActiveStep(userData.partnerOnBoardingSteps + 1);
@@ -41,6 +47,14 @@ export default function PartnerDashboard() {
   const progressPercentage = ((activeStep - 1) / (TOTAL_STEPS - 1)) * 100;
 
   function handleStepClick(step: Step) {
+    if (
+      step.id == 6 &&
+      userData?.partnerStatus === "approved" &&
+      userData?.videoKycStatus === "approved"
+    ) {
+      setShowPricing(true);
+      return
+    }
     if (step.route && step.id <= activeStep) {
       router.push(step.route);
     }
@@ -57,8 +71,8 @@ export default function PartnerDashboard() {
         </div>
 
         <div className="bg-white rounded-3xl p-10 shadow-xl border overflow-x-auto">
-          <div className="relative min-w-[800px]">
-            <div className="absolute top-7 left-0 w-full h-[3px] bg-gray-200 rounded-full" />
+          <div className="relative min-w-200">
+            <div className="absolute top-7 left-0 w-full h-0.75 bg-gray-200 rounded-full" />
             <motion.div
               animate={{ width: `${progressPercentage}%` }}
               transition={{ duration: 0.6 }}
@@ -126,7 +140,16 @@ export default function PartnerDashboard() {
             <RejectionCard
               title="Video KYC Rejected"
               reason={userData?.videoKycRejectionReason}
-              actionLable="Request Again"
+              actionLable={requestLoading ? "Requesting..." : "Request Again"}
+              onAction={async () => {
+                setRequestLoading(true);
+                const result = await axios.get(
+                  "/api/partner/video-kyc/request",
+                );
+                setRequestLoading(false);
+                console.log("hii");
+                console.log(result);
+              }}
             />
           ) : userData?.videoKycStatus === "in_progress" &&
             userData.videoKycRoomId ? (
@@ -146,6 +169,8 @@ export default function PartnerDashboard() {
             />
           ))}
       </div>
+
+      <PricingModel open={showPricing} onClose={()=>setShowPricing(false)} data={vehicleData}/>
     </div>
   );
 }

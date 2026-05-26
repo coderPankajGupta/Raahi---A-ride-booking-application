@@ -10,10 +10,11 @@ import {
   PhoneOff,
   Video,
   VideoOff,
+  X,
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { motion } from "motion/react";
@@ -34,6 +35,7 @@ export default function Page() {
   const [showApprovalModel, setShowApprovalModel] = useState(false);
   const [showRejectionModel, setShowRejectionModel] = useState(false);
   const { roomId } = useParams();
+  const router = useRouter();
 
   useEffect(() => {
     if (joined) return;
@@ -78,6 +80,7 @@ export default function Page() {
       });
       console.log(data);
       setALoading(false);
+      router.push("/");
     } catch (error: any) {
       console.log(error.response.data.message ?? error);
       setALoading(false);
@@ -94,6 +97,7 @@ export default function Page() {
       });
       console.log(data);
       setRLoading(false);
+      router.push("/");
     } catch (error: any) {
       console.log(error?.response?.data.message);
       setRLoading(false);
@@ -166,8 +170,10 @@ export default function Page() {
                 </button>
               </>
             )}
-            <button className="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-full text-sm flex items-center gap-2">
-              {" "}
+            <button
+              className="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-full text-sm flex items-center gap-2"
+              onClick={() => router.push("/")}
+            >
               <PhoneOff size={16} /> End Call
             </button>
           </div>
@@ -184,7 +190,7 @@ export default function Page() {
               <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-white">
                 <video
                   autoPlay
-                  className="w-full h-[400px] sm:h[500px] object-cover"
+                  className="w-full h-100 sm:h[500px] object-cover"
                   ref={previewRef}
                   playsInline
                 />
@@ -240,8 +246,86 @@ export default function Page() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <motion.div>
-              
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="relative bg-[#111] w-full max-w-md rounded-2xl p-6 shadow-2xl"
+            >
+              <button
+                className="absolute top-4 right-4 text-gray-400"
+                onClick={() => setShowApprovalModel(false)}
+              >
+                <X size={16} />
+              </button>
+
+              <h2 className="text-lg font-semibold mb-4">Confirm Approval</h2>
+
+              <div className="flex gap-4">
+                <button
+                  className="flex-1 border rounded-xl py-2"
+                  onClick={() => setShowApprovalModel(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="flex-1 bg-green-600 rounded-xl py-2"
+                  disabled={aLoading}
+                  onClick={handleApprove}
+                >
+                  {aLoading ? "Processing..." : "Approve"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showRejectionModel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="relative bg-[#111] w-full max-w-md rounded-2xl p-6 shadow-2xl"
+            >
+              <button
+                className="absolute top-4 right-4 text-gray-400"
+                onClick={() => setShowRejectionModel(false)}
+              >
+                <X size={16} />
+              </button>
+
+              <h2 className="text-lg font-semibold mb-4">Reject Partner</h2>
+
+              <textarea
+                placeholder="Rejection Reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="w-full bg-white/10 border border-white/20 rounded-xl p-3 mb-4 text-sm"
+              />
+
+              <div className="flex gap-4">
+                <button
+                  className="flex-1 border rounded-xl py-2"
+                  onClick={() => setShowRejectionModel(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="flex-1 bg-green-600 rounded-xl py-2"
+                  disabled={rLoading}
+                  onClick={handleReject}
+                >
+                  {rLoading ? "Processing..." : "Reject"}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
