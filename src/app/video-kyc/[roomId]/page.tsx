@@ -1,11 +1,22 @@
 "use client";
 import { RootState } from "@/redux/store";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
-import { Mic, MicOff, Video, VideoOff } from "lucide-react";
+import axios from "axios";
+import { AnimatePresence } from "framer-motion";
+import {
+  CheckCircle,
+  Mic,
+  MicOff,
+  PhoneOff,
+  Video,
+  VideoOff,
+  XCircle,
+} from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { motion } from "motion/react";
 
 export default function Page() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,7 +27,13 @@ export default function Page() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
-  const {roomId} = useParams(); 
+  const [loading, setLoading] = useState(false);
+  const [aLoading, setALoading] = useState(false);
+  const [rLoading, setRLoading] = useState(false);
+  const [reason, setReason] = useState(String);
+  const [showApprovalModel, setShowApprovalModel] = useState(false);
+  const [showRejectionModel, setShowRejectionModel] = useState(false);
+  const { roomId } = useParams();
 
   useEffect(() => {
     if (joined) return;
@@ -52,10 +69,45 @@ export default function Page() {
     setIsMicOn((prev) => !prev);
   }
 
+  async function handleApprove() {
+    setALoading(true);
+    try {
+      const { data } = await axios.post("/api/admin/video-kyc/complete", {
+        roomId,
+        action: "approved",
+      });
+      console.log(data);
+      setALoading(false);
+    } catch (error: any) {
+      console.log(error.response.data.message ?? error);
+      setALoading(false);
+    }
+  }
+
+  async function handleReject() {
+    setRLoading(true);
+    try {
+      const { data } = await axios.post("/api/admin/video-kyc/complete", {
+        roomId,
+        action: "rejected",
+        reason,
+      });
+      console.log(data);
+      setRLoading(false);
+    } catch (error: any) {
+      console.log(error?.response?.data.message);
+      setRLoading(false);
+    }
+  }
+
   async function startCall() {
     if (!containerRef.current) return null;
+    setLoading(true);
 
-    const displayName = userData?.role === "admin" ? "Admin" : `${userData?.name} (${userData?.email})`;
+    const displayName =
+      userData?.role === "admin"
+        ? "Admin"
+        : `${userData?.name} (${userData?.email})`;
     try {
       const appId = Number(process.env.NEXT_PUBLIC_ZEGO_APP_ID);
       const serverSecret = process.env.NEXT_PUBLIC_ZEGO_SERVER_SECRET as string;
@@ -76,6 +128,7 @@ export default function Page() {
         showPreJoinView: false,
       });
       setJoined(true);
+      setLoading(false);
     } catch (error) {
       console.log(error);
     }
@@ -92,9 +145,39 @@ export default function Page() {
               : "Partner Video KYC"}
           </p>
         </div>
+
+        {joined && (
+          <div className="flex flex-wrap gap-3">
+            {userData?.role == "admin" && (
+              <>
+                <button
+                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-full text-sm flex items-center gap-2"
+                  onClick={() => setShowApprovalModel(true)}
+                >
+                  {" "}
+                  <CheckCircle size={16} /> Approve{" "}
+                </button>
+                <button
+                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-full text-sm flex items-center gap-2"
+                  onClick={() => setShowRejectionModel(true)}
+                >
+                  {" "}
+                  <XCircle size={16} /> Reject
+                </button>
+              </>
+            )}
+            <button className="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-full text-sm flex items-center gap-2">
+              {" "}
+              <PhoneOff size={16} /> End Call
+            </button>
+          </div>
+        )}
       </div>
       <div className="flex-1 relative">
-        <div ref={containerRef} className={`absolute inset-0 ${joined?"block":"hidden"}`} />
+        <div
+          ref={containerRef}
+          className={`absolute inset-0 ${joined ? "block" : "hidden"}`}
+        />
         {!joined && (
           <div className="h-full flex items-center justify-center px-4 py-10">
             <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -135,12 +218,34 @@ export default function Page() {
                   </button>
                 </div>
 
-                <button className="w-full bg-white text-black py-4 rounded-xl font-semibold" onClick={startCall}>Join Secure Call</button>
+                <button
+                  className="w-full bg-white text-black py-4 rounded-xl font-semibold"
+                  onClick={startCall}
+                  disabled={loading}
+                >
+                  {" "}
+                  {loading ? "Connecting..." : "Join Secure Call"}
+                </button>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showApprovalModel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div>
+              
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
