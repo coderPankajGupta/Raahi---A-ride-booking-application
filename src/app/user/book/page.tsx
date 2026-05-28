@@ -1,7 +1,19 @@
 "use client";
 import { vehicleType } from "@/models/vehicle.model";
-import { ArrowLeft, Bike, Car, CheckCircle, Phone, Truck } from "lucide-react";
-import { motion } from "motion/react";
+import axios from "axios";
+import {
+  ArrowLeft,
+  Bike,
+  Car,
+  CheckCircle,
+  ChevronRight,
+  LocateFixed,
+  MapPin,
+  Navigation,
+  Phone,
+  Truck,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,18 +30,101 @@ const VEHICLES = [
   { id: "truck", label: "Truck", Icon: Truck, desc: "Heavy transport" },
 ];
 
+type Place = {
+  id: string;
+  name: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  countrycode?: string;
+  lat: number;
+  lng: number;
+};
+
 export default function Page() {
   const router = useRouter();
   const [vehicle, setVehicle] = useState<vehicleType>();
   const [mobile, setMobile] = useState("");
   const [pickUp, setPickUp] = useState("");
   const [drop, setDrop] = useState("");
+  const [pickUpCountry, setPickUpCountry] = useState("");
+  const [pickUpLat, setPickUpLat] = useState<Number>();
+  const [pickUpLon, setPickUpLon] = useState<Number>();
+  const [dropCountry, setDropCountry] = useState("");
+  const [dropLat, setDropLat] = useState<Number>();
+  const [dropLon, setDropLon] = useState<Number>();
+  const [locating, setLocating] = useState(false);
+  const [pickUpSuggestions, setPickUpSuggestions] = useState<Place[]>([]);
+  const [dropSuggestions, setDropSuggestions] = useState<Place[]>([]);
   const progress = [
     !!vehicle,
     !!(mobile.length == 10),
     !!pickUp,
     !!drop,
   ].filter(Boolean).length;
+
+  async function searchAddress(q: string, setResults: (r: Place[]) => void) {
+    try {
+      if (!q && q.trim().length < 3) {
+        setResults([]);
+        return;
+      }
+      const { data } = await axios.get(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(q.trim())}&limit=8&lang=en`,
+      );
+      const results: Place[] = (data.features ?? []).map((f: any) => ({
+        id: String(f.properties.osm_id),
+        name: f.properties.name,
+        city: f.properties.city,
+        state: f.properties.state,
+        country: f.properties.country,
+        countrycode: f.properties.countrycode,
+        lat: f.geometry.coordinates[1],
+        lng: f.geometry.coordinates[0],
+      }));
+      setResults(results);
+    } catch (error) {
+      console.log(error);
+      setResults([]);
+    }
+  }
+
+  const suggestion = (p: Place) =>
+    [p.name, p.city, p.state, p.country].filter(Boolean).join(",");
+
+  function useCurrentLocation() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      try {
+        setLocating(true);
+        const { data } = await axios.get(
+          `https://photon.komoot.io/reverse?lon=${coords.longitude}&lat=${coords.latitude}`,
+        );
+        if (data.features.length) {
+          const p = data.features[0].properties;
+          const address = [
+            p.name,
+            p.street,
+            p.locality,
+            p.city,
+            p.state,
+            p.country,
+          ]
+            .filter(Boolean)
+            .join(",");
+          setPickUp(address);
+          setPickUpCountry(p.country);
+          setPickUpLat(coords.latitude);
+          setPickUpLon(coords.longitude);
+          setPickUpSuggestions([]);
+          setLocating(false);
+        }
+      } catch (error) {
+        setLocating(false);
+        console.log(error);
+      }
+    });
+  }
 
   return (
     <div className="min-h-screen bg-zinc-100 flex items-center justify-center px-4 py-10">
@@ -72,7 +167,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-zinc-200 shadow-[0_8px_40px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div className="bg-white rounded-3xl border border-zinc-200 shadow-[0_8px_40px_rgba(0,0,0,0.08)] overflow-visible">
           <div className="h-1 bg-zinc-900 w-full" />
 
           <div className="p-6 space-y-7">
@@ -161,7 +256,7 @@ export default function Page() {
 
               <div className="flex items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 focus-within:border-zinc-950 focus-within:bg-white transition-all">
                 <div className="w-8 h-8 rounded-xl bg-zinc-200 flex items-center justify-center shrink-0">
-                  <Phone size={18} className="text-zinc-600" />
+                  <Phone size={14} className="text-zinc-600" />
                 </div>
                 <input
                   type="tel"
@@ -172,6 +267,184 @@ export default function Page() {
                   maxLength={15}
                   className="flex-1 bg-transparent text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 outline-none"
                 />
+                <AnimatePresence>
+                  {mobile.length == 10 && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                    >
+                      <CheckCircle
+                        size={16}
+                        className="text-emerald-500 fill-emerald-50"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <p className="text-zinc-400 text-[10px] mt-1.5 ml-1">
+                Ride updates will be sent to this number.
+              </p>
+            </motion.div>
+
+            <div className="h-px bg-zinc-200" />
+
+            <motion.div
+              variants={stepVariants}
+              initial={"hidden"}
+              animate={"visible"}
+              transition={{ delay: 0.05 }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-5 h-5 rounded-full bg-zinc-900 flex items-center justify-center shrink-0">
+                  <span className="text-white bg-black text-[9px]">3</span>
+                </div>
+                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                  Route
+                </p>
+              </div>
+
+              <div className="bg-zinc-50 border border-zinc-200 rounded-2xl overflow-visible">
+
+                <div className="relative z-30">
+                  <div className="flex items-center gap-3 px-4 py-3.5 focus-within:bg-white rounded-t-2xl transition-colors">
+                    <div className="flex flex-col items-center shrink-0">
+                      <div className="w-3 h-3 rounded-full bg-zinc-900 border-2 border-white shadow" />
+                      <div className="w-px h-5 bg-zinc-300 mt-1" />
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Pickup Location"
+                      value={pickUp}
+                      onChange={(e) => {
+                        setPickUp(e.target.value);
+                        searchAddress(e.target.value, setPickUpSuggestions);
+                      }}
+                      className="flex-1 bg-transparent text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 outline-none"
+                    />
+                    <motion.button
+                      disabled={locating}
+                      whileTap={{ scale: 0.9 }}
+                      className="w-8 h-8 bg-zinc-200 rounded-xl hover:bg-zinc-300 transition-colors flex items-center justify-center shrink-0"
+                      onClick={useCurrentLocation}
+                    >
+                      <LocateFixed
+                        size={14}
+                        className={`text-zinc-700 ${locating ? "animate-spin" : ""}`}
+                      />
+                    </motion.button>
+                  </div>
+
+                  <AnimatePresence>
+                    {pickUpSuggestions?.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute left-0 right-0 top-full mt-1 bg-white border border-zinc-200 rounded-2xl shadow-xl max-h-30 overflow-y-auto z-50"
+                      >
+                        {pickUpSuggestions.map((p, i) => (
+                          <motion.div
+                            key={p.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.03 }}
+                            className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-zinc-50 transition-colors border-b border-zinc-100 last:border-0"
+                            onClick={() => {
+                              (setPickUp(suggestion(p)),
+                                setPickUpCountry(p.country ?? ""),
+                                setPickUpLat(p.lat),
+                                setPickUpLon(p.lng));
+                                setPickUpSuggestions([])
+                            }}
+                          >
+                            <MapPin
+                              size={13}
+                              className="text-zinc-400 shrink-0"
+                            />
+                            <span className="text-sm text-zinc-800 font-medium truncate">
+                              {suggestion(p)}
+                            </span>
+                            <ChevronRight
+                              size={13}
+                              className="text-zinc-300 shrink-0 ml-auto"
+                            />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="h-px bg-zinc-200" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 px-4 py-3.5 focus-within:bg-white rounded-t-2xl transition-colors">
+                    <div className="flex flex-col items-center shrink-0">
+                      
+                      <div className="w-3 h-3 rounded-full bg-zinc-900 border-2 border-white shadow" />
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder={pickUpCountry?"Drop Location":"Select Pickup Location First"}
+                      value={drop}
+                      disabled={!pickUpCountry}
+                      onChange={(e) => {
+                        setDrop(e.target.value);
+                        searchAddress(e.target.value, setDropSuggestions);
+                      }}
+                      className="flex-1 bg-transparent text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 outline-none"
+                    />
+
+                    <Navigation size={14} className="shrink-0 text-zinc-300"/>
+                    
+                  </div>
+
+                  <AnimatePresence>
+                    {dropSuggestions?.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute left-0 right-0 top-full mt-1 bg-white border border-zinc-200 rounded-2xl shadow-xl max-h-30 overflow-y-auto z-50"
+                      >
+                        {dropSuggestions.map((p, i) => (
+                          <motion.div
+                            key={p.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.03 }}
+                            className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-zinc-50 transition-colors border-b border-zinc-100 last:border-0"
+                            onClick={() => {
+                              (setDrop(suggestion(p)),
+                                setDropCountry(p.country ?? ""),
+                                setDropLat(p.lat),
+                                setDropLon(p.lng));
+                                setDropSuggestions([])
+                            }}
+                          >
+                            <Navigation
+                              size={13}
+                              className="text-zinc-400 shrink-0"
+                            />
+                            <span className="text-sm text-zinc-800 font-medium truncate">
+                              {suggestion(p)}
+                            </span>
+                            <ChevronRight
+                              size={13}
+                              className="text-zinc-300 shrink-0 ml-auto"
+                            />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </motion.div>
           </div>
