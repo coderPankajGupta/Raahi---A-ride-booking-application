@@ -62,8 +62,23 @@ export default function Page() {
     !!pickUp,
     !!drop,
   ].filter(Boolean).length;
+  
+  const canContinue = !!(
+    vehicle &&
+    mobile &&
+    pickUp &&
+    drop &&
+    pickUpLon &&
+    pickUpLat &&
+    dropLat &&
+    dropLon
+  );
 
-  async function searchAddress(q: string, setResults: (r: Place[]) => void) {
+  async function searchAddress(
+    q: string,
+    setResults: (r: Place[]) => void,
+    restrict?: string | null,
+  ) {
     try {
       if (!q && q.trim().length < 3) {
         setResults([]);
@@ -72,7 +87,7 @@ export default function Page() {
       const { data } = await axios.get(
         `https://photon.komoot.io/api/?q=${encodeURIComponent(q.trim())}&limit=8&lang=en`,
       );
-      const results: Place[] = (data.features ?? []).map((f: any) => ({
+      let results: Place[] = (data.features ?? []).map((f: any) => ({
         id: String(f.properties.osm_id),
         name: f.properties.name,
         city: f.properties.city,
@@ -82,6 +97,9 @@ export default function Page() {
         lat: f.geometry.coordinates[1],
         lng: f.geometry.coordinates[0],
       }));
+      if (restrict) {
+        results = results.filter((r) => r.country == restrict);
+      }
       setResults(results);
     } catch (error) {
       console.log(error);
@@ -168,7 +186,7 @@ export default function Page() {
         </div>
 
         <div className="bg-white rounded-3xl border border-zinc-200 shadow-[0_8px_40px_rgba(0,0,0,0.08)] overflow-visible">
-          <div className="h-1 bg-zinc-900 w-full" />
+          <div className="h-1 bg-zinc-900 w-[90%] m-auto rounded-2xl" />
 
           <div className="p-6 space-y-7">
             <motion.div
@@ -306,7 +324,6 @@ export default function Page() {
               </div>
 
               <div className="bg-zinc-50 border border-zinc-200 rounded-2xl overflow-visible">
-
                 <div className="relative z-30">
                   <div className="flex items-center gap-3 px-4 py-3.5 focus-within:bg-white rounded-t-2xl transition-colors">
                     <div className="flex flex-col items-center shrink-0">
@@ -358,7 +375,7 @@ export default function Page() {
                                 setPickUpCountry(p.country ?? ""),
                                 setPickUpLat(p.lat),
                                 setPickUpLon(p.lng));
-                                setPickUpSuggestions([])
+                              setPickUpSuggestions([]);
                             }}
                           >
                             <MapPin
@@ -384,24 +401,30 @@ export default function Page() {
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 px-4 py-3.5 focus-within:bg-white rounded-t-2xl transition-colors">
                     <div className="flex flex-col items-center shrink-0">
-                      
                       <div className="w-3 h-3 rounded-full bg-zinc-900 border-2 border-white shadow" />
                     </div>
 
                     <input
                       type="text"
-                      placeholder={pickUpCountry?"Drop Location":"Select Pickup Location First"}
+                      placeholder={
+                        pickUpCountry
+                          ? "Drop Location"
+                          : "Select Pickup Location First"
+                      }
                       value={drop}
                       disabled={!pickUpCountry}
                       onChange={(e) => {
                         setDrop(e.target.value);
-                        searchAddress(e.target.value, setDropSuggestions);
+                        searchAddress(
+                          e.target.value,
+                          setDropSuggestions,
+                          pickUpCountry,
+                        );
                       }}
                       className="flex-1 bg-transparent text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 outline-none"
                     />
 
-                    <Navigation size={14} className="shrink-0 text-zinc-300"/>
-                    
+                    <Navigation size={14} className="shrink-0 text-zinc-300" />
                   </div>
 
                   <AnimatePresence>
@@ -425,7 +448,7 @@ export default function Page() {
                                 setDropCountry(p.country ?? ""),
                                 setDropLat(p.lat),
                                 setDropLon(p.lng));
-                                setDropSuggestions([])
+                              setDropSuggestions([]);
                             }}
                           >
                             <Navigation
@@ -447,9 +470,36 @@ export default function Page() {
                 </div>
               </div>
             </motion.div>
+
+            <motion.div
+              variants={stepVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.3 }}
+            >
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                whileHover={canContinue ? { scale: 1.02 } : {}}
+                disabled={!canContinue}
+                onClick={() =>
+                  router.push(
+                    `/user/search?pickup=${pickUp}&drop=${drop}&vehicle=${vehicle}&mobile=${mobile}&pickuplat=${pickUpLat}&pickuplon=${pickUpLon}&droplat=${dropLat}&droplon=${dropLon}`,
+                  )
+                }
+                className="w-full h-14 rounded-2xl bg-zinc-900 hover:bg-black disabled:opacity-35 text-white font-black text-sm tracking-wide flex items-center justify-center gap-2.5 transition-colors shadow-lg disabled:shadow-none"
+              >
+                <span>Continue</span>
+              </motion.button>
+            </motion.div>
           </div>
         </div>
       </motion.div>
     </div>
   );
 }
+
+
+
+
+
+// 3000/search?pickup=Alta+Monte+Service+Road%2CMalad+East%2CMaharashtra%2CIndia&drop=Belthara+Road%2CBelthara+Road%2CUttar+Pradesh%2CIndia&vehicle=bike&mobile=7889867898&pickuplat=19.190807146401692&pickuplon=72.8582247114299&droplat=26.1207542&droplon=83.8413367
