@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     if (partnerIds.length == 0) {
       return NextResponse.json(
-        { message: "Vehicles not found." },
+        [],
         { status: 200 },
       );
     }
